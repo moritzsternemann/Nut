@@ -50,6 +50,10 @@ QString PostgreSqlGenerator::fieldType(FieldModel *field)
         dbType = "TIME";
         break;
 
+    case QVariant::Image:
+        dbType = "BYTEA";
+        break;
+
     case QVariant::Int:
     case QVariant::UInt:
         if(field->isAutoIncrement)

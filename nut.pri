@@ -22,7 +22,8 @@ HEADERS += \
     $$PWD/src/table.h \
     $$PWD/src/database.h \
     $$PWD/src/database_p.h \
-    $$PWD/src/dbgeography.h
+    $$PWD/src/dbgeography.h \
+    $$PWD/src/sqlvalue.h
 
 SOURCES += \
     $$PWD/src/tableset.cpp \
@@ -40,4 +41,5 @@ SOURCES += \
     $$PWD/src/wherephrase.cpp \
     $$PWD/src/table.cpp \
     $$PWD/src/database.cpp \
-    $$PWD/src/dbgeography.cpp
+    $$PWD/src/dbgeography.cpp \
+    $$PWD/src/sqlvalue.cpp

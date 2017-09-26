@@ -30,6 +30,7 @@
 #include "table.h"
 #include "tablemodel.h"
 #include "wherephrase.h"
+#include "sqlvalue.h"
 
 NUT_BEGIN_NAMESPACE
 
@@ -172,8 +173,8 @@ QString SqlGeneratorBase::insertRecord(Table *t, QString tableName)
 
     foreach (QString f, t->changedProperties())
         if (f != key)
-            values.append("'" + t->property(f.toLatin1().data()).toString()
-                          + "'");
+            values.append(QString("'%1'")
+                          .arg(_database->serializeSqlValue(t->property(f.toLatin1().data()))));
 
     QString changedPropertiesText = "";
     QSet<QString> props = t->changedProperties();
@@ -200,8 +201,10 @@ QString SqlGeneratorBase::updateRecord(Table *t, QString tableName)
 
     foreach (QString f, t->changedProperties())
         if (f != key)
-            values.append(f + "='" + t->property(f.toLatin1().data()).toString()
-                          + "'");
+            values.append(QString("%1 ='%2'")
+                          .arg(f)
+                          .arg(_database->serializeSqlValue(t->property(f.toLatin1().data()))));
+
     sql = QString("UPDATE %1 SET %2 WHERE %3=%4")
               .arg(tableName)
               .arg(values.join(", "))

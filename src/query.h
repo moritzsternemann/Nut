@@ -35,6 +35,7 @@
 #include "querybase_p.h"
 #include "wherephrase.h"
 #include "tablemodel.h"
+#include "sqlvalue.h"
 
 NUT_BEGIN_NAMESPACE
 
@@ -136,9 +137,9 @@ Q_OUTOFLINE_TEMPLATE QList<T *> Query<T>::toList(int count)
     // FIXME: getting table error
     //    QStringList masterFields =
     //    TableModel::findByName(d->tableName)->fieldsNames();
-    QStringList masterFields
-        = d->database->model().tableByName(d->tableName)->fieldsNames();
-    QStringList childFields;
+    QList<FieldModel *> masterFields
+        = d->database->model().tableByName(d->tableName)->fields();
+    QList<FieldModel *> childFields;
     if (!d->joinClassName.isNull()) {
         TableModel *joinTableModel
             = TableModel::findByClassName(d->joinClassName);
@@ -146,7 +147,7 @@ Q_OUTOFLINE_TEMPLATE QList<T *> Query<T>::toList(int count)
             //            childFields =
             //            d->database->model().modelByClass(d->joinClassName)->fieldsNames();
             childFields
-                = TableModel::findByClassName(d->joinClassName)->fieldsNames();
+                = TableModel::findByClassName(d->joinClassName)->fields();
             QString joinTableName = d->database->tableName(d->joinClassName);
             childTypeId = d->database->model().tableByName(joinTableName)->typeId();
             //            childTypeId =
@@ -157,8 +158,10 @@ Q_OUTOFLINE_TEMPLATE QList<T *> Query<T>::toList(int count)
     while (q.next()) {
         if (lastPkValue != q.value(pk)) {
             T *t = new T();
-            foreach (QString field, masterFields)
-                t->setProperty(field.toLatin1().data(), q.value(field));
+            foreach (FieldModel *field, masterFields)
+                t->setProperty(field->name.toLatin1().data(),
+                               d->database->deserializeSqlValue(field->type, q.value(field->name)));
+
             //            for (int i = 0; i < t->metaObject()->propertyCount();
             //            i++) {
             //                const QMetaProperty p =
@@ -191,9 +194,9 @@ Q_OUTOFLINE_TEMPLATE QList<T *> Query<T>::toList(int count)
             Table *childTable
                 = qobject_cast<Table *>(childMetaObject->newInstance());
 
-            foreach (QString field, childFields)
-                childTable->setProperty(field.toLatin1().data(),
-                                        q.value(field));
+            foreach (FieldModel *field, childFields)
+                childTable->setProperty(field->name.toLatin1().data(),
+                                        d->database->deserializeSqlValue(field->type, q.value(field->name)));
             // TODO: set database for table
             childTable->setParent(this);
             childTable->setParentTable(lastRow);

@@ -27,8 +27,12 @@
 
 #include "defines.h"
 #include "tableset.h"
+#include "sqlvalue.h"
 
 NUT_BEGIN_NAMESPACE
+
+typedef QString (*SerializeSqlValue)(const QVariant&);
+typedef QVariant (*DeserializeSqlValue)(const QVariant::Type&, const QVariant&);
 
 class DatabaseModel;
 class DatabasePrivate;
@@ -71,6 +75,9 @@ public:
 
     SqlGeneratorBase *sqlGenertor() const;
 
+    QString serializeSqlValue(const QVariant &property) const;
+    QVariant deserializeSqlValue(const QVariant::Type &fieldType, const QVariant &value) const;
+
 protected:
     //remove minor version
     virtual void databaseUpdated(int oldMajor, int oldMinor, int newMajor,
@@ -85,9 +92,15 @@ public slots:
     void setConnectionName(QString connectionName);
     void setDriver(QString driver);
 
+    void setSqlValueSerializator(SerializeSqlValue func);
+    void setSqlValueDeserializator(DeserializeSqlValue func);
+
 private:
     //TODO: move me to database_p.h
     QSet<TableSetBase *> tableSets;
+
+    SerializeSqlValue m_serializeSqlValue;
+    DeserializeSqlValue m_deserializeSqlValue;
 };
 
 NUT_END_NAMESPACE

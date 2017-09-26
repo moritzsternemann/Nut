@@ -306,6 +306,8 @@ Database::Database(QObject *parent)
     : QObject(parent), d_ptr(new DatabasePrivate(this))
 {
     Q_D(Database);
+    setSqlValueSerializator(&SqlValue::serialize);
+    setSqlValueDeserializator(&SqlValue::deserialize);
     // d->changeLogs->sett
     DatabasePrivate::lastId++;
 }
@@ -322,6 +324,8 @@ Database::Database(const Database &other, QObject *parent)
     setDatabaseName(other.databaseName());
     setUserName(other.userName());
     setPassword(other.password());
+    setSqlValueSerializator(other.m_serializeSqlValue);
+    setSqlValueDeserializator(other.m_deserializeSqlValue);
 }
 
 Database::~Database()
@@ -442,10 +446,30 @@ void Database::setDriver(QString driver)
     d->driver = driver.toUpper();
 }
 
+void Database::setSqlValueSerializator(SerializeSqlValue func)
+{
+    m_serializeSqlValue = func;
+}
+
+void Database::setSqlValueDeserializator(DeserializeSqlValue func)
+{
+    m_deserializeSqlValue = func;
+}
+
 SqlGeneratorBase *Database::sqlGenertor() const
 {
     Q_D(const Database);
     return d->sqlGenertor;
+}
+
+QString Database::serializeSqlValue(const QVariant &property) const
+{
+    return (*m_serializeSqlValue)(property);
+}
+
+QVariant Database::deserializeSqlValue(const QVariant::Type &fieldType, const QVariant &value) const
+{
+    return (*m_deserializeSqlValue)(fieldType, value);
 }
 
 void Database::databaseUpdated(int oldMajor, int oldMinor, int newMajor,
